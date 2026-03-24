@@ -2,470 +2,261 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Console do Coração — Remetente</title>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Raleway:wght@200;300;400&display=swap" rel="stylesheet">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Console do Coração</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Raleway:wght@200;300&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #0f0e0d;
-    --surface: #1a1815;
-    --border: rgba(210,170,100,0.18);
-    --gold: #c9a65a;
-    --gold-dim: #7a6030;
-    --text: #ede3d0;
-    --text-dim: #7a7060;
-    --sent: #2a2318;
+    --bg: #0d0d14;
+    --surface: #12121e;
+    --text: #e8dff5;
+    --text-dim: #7a6f90;
+    --accent: #9b6dbd;
+    --pulse: #d4b0f0;
+    --sent: #16141f;
   }
 
-  * { margin: 0; padding: 0; box-sizing: border-box; }
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
-  body {
+  html, body {
+    height: 100%;
     background: var(--bg);
     color: var(--text);
     font-family: 'Cormorant Garamond', serif;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
     overflow: hidden;
   }
 
-  /* Warm paper texture overlay */
-  body::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background-image:
-      radial-gradient(ellipse 70% 60% at 20% 20%, rgba(180,130,50,0.07) 0%, transparent 70%),
-      radial-gradient(ellipse 50% 50% at 80% 80%, rgba(120,80,30,0.06) 0%, transparent 70%);
-    pointer-events: none;
-    z-index: 0;
+  /* Stars */
+  .stars { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
+  .star {
+    position: absolute; border-radius: 50%; background: white;
+    animation: twinkle var(--d, 3s) infinite ease-in-out alternate;
+  }
+  @keyframes twinkle {
+    from { opacity: var(--o1, 0.1); transform: scale(1); }
+    to   { opacity: var(--o2, 0.5); transform: scale(1.3); }
   }
 
-  /* Grain texture */
-  body::after {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
-    opacity: 0.4;
-    pointer-events: none;
-    z-index: 0;
+  /* Orbs */
+  .orb { position: fixed; border-radius: 50%; filter: blur(80px); pointer-events: none; z-index: 0; opacity: 0.15; }
+  .orb1 { width: 400px; height: 400px; background: #6a3fa0; top: -120px; left: -100px; animation: drift1 18s infinite ease-in-out alternate; }
+  .orb2 { width: 350px; height: 350px; background: #3f3560; bottom: -80px; right: -80px; animation: drift2 22s infinite ease-in-out alternate; }
+  @keyframes drift1 { from{transform:translate(0,0)} to{transform:translate(30px,20px)} }
+  @keyframes drift2 { from{transform:translate(0,0)} to{transform:translate(-20px,-15px)} }
+
+  /* Layout */
+  .app {
+    position: relative; z-index: 1;
+    height: 100vh; height: 100dvh;
+    display: flex; flex-direction: column;
+    max-width: 680px; margin: 0 auto;
   }
 
-  .layout {
-    position: relative;
-    z-index: 1;
-    display: grid;
-    grid-template-columns: 1fr 340px;
-    grid-template-rows: auto 1fr auto;
-    height: 100vh;
-    max-width: 1100px;
-    margin: 0 auto;
-    width: 100%;
-  }
-
-  /* Header spans full width */
+  /* Header */
   .header {
-    grid-column: 1 / -1;
-    padding: 32px 40px 24px;
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
+    padding: 28px 24px 18px;
+    text-align: center;
+    border-bottom: 1px solid rgba(155,109,189,0.12);
+    flex-shrink: 0;
     opacity: 0;
-    animation: fadeIn 0.8s 0.2s forwards;
+    animation: fadeUp 0.8s 0.2s forwards;
   }
-
-  .header-left .eyebrow {
-    font-family: 'Raleway', sans-serif;
-    font-weight: 200;
-    font-size: 0.62rem;
-    letter-spacing: 0.4em;
-    text-transform: uppercase;
-    color: var(--text-dim);
-    margin-bottom: 6px;
+  .header-eyebrow {
+    font-family: 'Raleway', sans-serif; font-weight: 200;
+    font-size: 0.6rem; letter-spacing: 0.4em; text-transform: uppercase;
+    color: var(--text-dim); margin-bottom: 6px;
   }
-  .header-left .title {
-    font-size: 1.6rem;
-    font-weight: 300;
-    font-style: italic;
-    color: var(--gold);
-    letter-spacing: 0.02em;
+  .header-title {
+    font-size: 1.7rem; font-weight: 300; font-style: italic;
+    color: var(--pulse); text-shadow: 0 0 30px rgba(200,160,228,0.35);
   }
-
-  .header-status {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-family: 'Raleway', sans-serif;
-    font-size: 0.65rem;
-    font-weight: 300;
-    letter-spacing: 0.25em;
-    text-transform: uppercase;
-    color: var(--text-dim);
+  .status {
+    display: inline-flex; align-items: center; gap: 6px; margin-top: 8px;
+    font-family: 'Raleway', sans-serif; font-size: 0.58rem; font-weight: 200;
+    letter-spacing: 0.3em; text-transform: uppercase; color: var(--text-dim);
   }
   .status-dot {
-    width: 7px; height: 7px;
-    border-radius: 50%;
-    background: #4caf79;
-    box-shadow: 0 0 8px #4caf79;
+    width: 6px; height: 6px; border-radius: 50%;
+    background: #4caf79; box-shadow: 0 0 6px #4caf79;
     animation: pulse 2s infinite;
   }
-  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
 
-  /* Compose area */
-  .compose-area {
-    grid-column: 1;
-    grid-row: 2;
-    padding: 40px 40px 0 40px;
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-    border-right: 1px solid var(--border);
-    opacity: 0;
-    animation: fadeIn 0.8s 0.4s forwards;
+  /* History */
+  .history {
+    flex: 1; overflow-y: auto;
+    padding: 18px 24px 8px;
+    display: flex; flex-direction: column;
+    opacity: 0; animation: fadeUp 0.8s 0.4s forwards;
   }
-
-  .compose-label {
-    font-family: 'Raleway', sans-serif;
-    font-weight: 200;
-    font-size: 0.62rem;
-    letter-spacing: 0.35em;
-    text-transform: uppercase;
-    color: var(--text-dim);
+  .history-label {
+    font-family: 'Raleway', sans-serif; font-weight: 200;
+    font-size: 0.58rem; letter-spacing: 0.35em; text-transform: uppercase;
+    color: var(--text-dim); margin-bottom: 12px; flex-shrink: 0;
+    display: flex; justify-content: space-between; align-items: center;
   }
-
-  .textarea-wrapper {
-    flex: 1;
-    position: relative;
-  }
-
-  textarea {
-    width: 100%;
-    height: 100%;
-    background: transparent;
-    border: none;
-    border-left: 2px solid rgba(201,166,90,0.2);
-    padding: 20px 20px 20px 24px;
-    color: var(--text);
-    font-family: 'Cormorant Garamond', serif;
-    font-size: clamp(1.1rem, 2vw, 1.4rem);
-    font-weight: 300;
-    line-height: 1.8;
-    resize: none;
-    outline: none;
-    transition: border-color 0.3s;
-    min-height: 220px;
-  }
-  textarea:focus { border-left-color: var(--gold); }
-  textarea::placeholder {
-    color: var(--text-dim);
-    font-style: italic;
-  }
-
-  .char-count {
-    text-align: right;
-    font-family: 'Raleway', sans-serif;
-    font-size: 0.6rem;
-    font-weight: 200;
-    color: var(--text-dim);
-    letter-spacing: 0.15em;
-    margin-top: 8px;
-  }
-
-  /* Compose footer */
-  .compose-footer {
-    grid-column: 1;
-    grid-row: 3;
-    padding: 20px 40px 32px;
-    border-right: 1px solid var(--border);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    opacity: 0;
-    animation: fadeIn 0.8s 0.6s forwards;
-  }
-
-  .send-btn {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 14px 36px;
-    background: transparent;
-    border: 1px solid rgba(201,166,90,0.4);
-    color: var(--gold);
-    font-family: 'Raleway', sans-serif;
-    font-weight: 300;
-    font-size: 0.75rem;
-    letter-spacing: 0.3em;
-    text-transform: uppercase;
-    cursor: pointer;
-    transition: all 0.3s;
-    position: relative;
-    overflow: hidden;
-  }
-  .send-btn::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: rgba(201,166,90,0.07);
-    transform: translateX(-100%);
-    transition: transform 0.3s;
-  }
-  .send-btn:hover::before { transform: translateX(0); }
-  .send-btn:hover {
-    border-color: var(--gold);
-    box-shadow: 0 0 20px rgba(201,166,90,0.15);
-  }
-  .send-btn:active { transform: scale(0.98); }
-  .send-btn.sending { opacity: 0.5; pointer-events: none; }
-
-  .shortcut-hint {
-    font-family: 'Raleway', sans-serif;
-    font-size: 0.58rem;
-    font-weight: 200;
-    color: var(--text-dim);
-    letter-spacing: 0.2em;
-  }
-  .shortcut-hint kbd {
-    display: inline-block;
-    padding: 2px 6px;
-    border: 1px solid rgba(122,112,96,0.3);
-    border-radius: 3px;
-    font-family: inherit;
-    font-size: 0.58rem;
-  }
-
-  /* History sidebar */
-  .history-panel {
-    grid-column: 2;
-    grid-row: 2 / 4;
-    display: flex;
-    flex-direction: column;
-    padding: 28px 28px 32px;
-    overflow: hidden;
-    opacity: 0;
-    animation: fadeIn 0.8s 0.5s forwards;
-  }
-
-  .history-header {
-    font-family: 'Raleway', sans-serif;
-    font-weight: 200;
-    font-size: 0.62rem;
-    letter-spacing: 0.35em;
-    text-transform: uppercase;
-    color: var(--text-dim);
-    margin-bottom: 20px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-
   .clear-btn {
-    background: none;
-    border: none;
-    color: var(--text-dim);
-    font-family: 'Raleway', sans-serif;
-    font-size: 0.58rem;
-    letter-spacing: 0.2em;
-    cursor: pointer;
-    text-transform: uppercase;
-    transition: color 0.2s;
+    background: none; border: none; color: var(--text-dim);
+    font-family: 'Raleway', sans-serif; font-size: 0.55rem;
+    letter-spacing: 0.2em; text-transform: uppercase; cursor: pointer;
+    transition: color 0.2s; padding: 4px 0;
   }
-  .clear-btn:hover { color: #c0604a; }
+  .clear-btn:active { color: #c0604a; }
 
-  .history-list {
-    flex: 1;
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-  }
+  .history-items { display: flex; flex-direction: column; gap: 2px; }
 
   .history-item {
-    padding: 14px 16px;
-    background: var(--sent);
-    border-left: 2px solid rgba(201,166,90,0.15);
-    transition: border-color 0.2s;
-    animation: slideIn 0.35s ease forwards;
-    position: relative;
-    group: true;
+    padding: 12px 16px; background: var(--sent);
+    border-left: 2px solid rgba(155,109,189,0.15);
+    animation: fadeUp 0.3s forwards;
   }
-  .history-item:hover { border-left-color: rgba(201,166,90,0.5); }
-
   .history-time {
-    font-family: 'Raleway', sans-serif;
-    font-weight: 200;
-    font-size: 0.58rem;
-    letter-spacing: 0.2em;
-    color: var(--text-dim);
-    margin-bottom: 6px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
+    font-family: 'Raleway', sans-serif; font-size: 0.55rem; font-weight: 200;
+    letter-spacing: 0.2em; color: var(--text-dim); margin-bottom: 5px;
+    display: flex; justify-content: space-between;
   }
-
-  .delete-msg-btn {
-    background: none;
-    border: none;
-    color: var(--text-dim);
-    cursor: pointer;
-    font-size: 0.65rem;
-    opacity: 0;
-    transition: opacity 0.2s, color 0.2s;
-    padding: 0 2px;
+  .delete-btn {
+    background: none; border: none; color: var(--text-dim);
+    cursor: pointer; font-size: 0.6rem; transition: color 0.2s; padding: 0 2px;
   }
-  .history-item:hover .delete-msg-btn { opacity: 1; }
-  .delete-msg-btn:hover { color: #c0604a; }
-
+  .delete-btn:active { color: #c0604a; }
   .history-text {
-    font-size: 0.88rem;
-    font-weight: 300;
-    line-height: 1.6;
-    color: #a89878;
-    white-space: pre-wrap;
-    display: -webkit-box;
-    -webkit-line-clamp: 3;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
+    font-size: 0.95rem; font-weight: 300; line-height: 1.6; color: #a890c8;
+    white-space: pre-wrap; display: -webkit-box; -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical; overflow: hidden;
+  }
+  .history-empty {
+    font-size: 1rem; font-style: italic; font-weight: 300;
+    color: var(--text-dim); text-align: center; padding: 32px 0; line-height: 1.7;
   }
 
-  .history-empty {
-    font-size: 0.82rem;
-    font-style: italic;
-    font-weight: 300;
-    color: var(--text-dim);
-    text-align: center;
-    padding: 40px 0;
-    line-height: 1.7;
+  /* Compose */
+  .compose {
+    flex-shrink: 0;
+    border-top: 1px solid rgba(155,109,189,0.12);
+    padding: 16px 24px env(safe-area-inset-bottom, 24px);
+    padding-bottom: max(24px, env(safe-area-inset-bottom));
+    display: flex; flex-direction: column; gap: 12px;
+    background: rgba(13,13,20,0.97);
+    backdrop-filter: blur(12px);
+    opacity: 0; animation: fadeUp 0.8s 0.5s forwards;
   }
+  .compose-label {
+    font-family: 'Raleway', sans-serif; font-weight: 200;
+    font-size: 0.58rem; letter-spacing: 0.35em; text-transform: uppercase;
+    color: var(--text-dim);
+  }
+  textarea {
+    width: 100%; min-height: 88px; max-height: 150px;
+    background: rgba(155,109,189,0.06);
+    border: 1px solid rgba(155,109,189,0.18); border-radius: 2px;
+    padding: 14px 16px; color: var(--text);
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.15rem; font-weight: 300; line-height: 1.7;
+    resize: none; outline: none; transition: border-color 0.3s;
+    -webkit-appearance: none;
+  }
+  textarea:focus { border-color: rgba(155,109,189,0.45); }
+  textarea::placeholder { color: var(--text-dim); font-style: italic; }
+
+  .compose-row { display: flex; align-items: center; gap: 12px; }
+  .char-count {
+    font-family: 'Raleway', sans-serif; font-size: 0.58rem; font-weight: 200;
+    color: var(--text-dim); letter-spacing: 0.1em; flex-shrink: 0;
+  }
+  .send-btn {
+    flex: 1; padding: 14px 20px; background: transparent;
+    border: 1px solid rgba(155,109,189,0.35); border-radius: 2px;
+    color: var(--pulse); font-family: 'Raleway', sans-serif; font-weight: 300;
+    font-size: 0.7rem; letter-spacing: 0.35em; text-transform: uppercase;
+    cursor: pointer; transition: all 0.3s;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    -webkit-appearance: none;
+  }
+  .send-btn:active { background: rgba(155,109,189,0.12); transform: scale(0.98); }
+  .send-btn.sending { opacity: 0.4; pointer-events: none; }
 
   /* Notification */
   .notif {
-    position: fixed;
-    bottom: 80px;
-    right: 28px;
-    padding: 12px 20px;
-    background: var(--surface);
-    border: 1px solid rgba(201,166,90,0.3);
-    font-family: 'Raleway', sans-serif;
-    font-size: 0.65rem;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    color: var(--gold);
-    opacity: 0;
-    transform: translateY(10px);
-    transition: all 0.3s;
-    pointer-events: none;
-    z-index: 20;
+    position: fixed; top: 20px; left: 50%;
+    transform: translateX(-50%) translateY(-60px);
+    padding: 10px 20px; background: rgba(18,18,30,0.95);
+    border: 1px solid rgba(155,109,189,0.3);
+    font-family: 'Raleway', sans-serif; font-size: 0.62rem;
+    letter-spacing: 0.25em; text-transform: uppercase; color: var(--pulse);
+    transition: transform 0.35s cubic-bezier(0.34,1.56,0.64,1);
+    pointer-events: none; z-index: 20; white-space: nowrap;
+    backdrop-filter: blur(12px);
   }
-  .notif.show { opacity: 1; transform: translateY(0); }
+  .notif.show { transform: translateX(-50%) translateY(0); }
 
   /* Music */
   .music-btn {
-    position: fixed;
-    bottom: 28px;
-    right: 28px;
-    z-index: 10;
-    width: 46px;
-    height: 46px;
-    border-radius: 50%;
-    border: 1px solid rgba(201,166,90,0.3);
-    background: rgba(15,14,13,0.85);
-    backdrop-filter: blur(12px);
-    color: var(--text-dim);
-    font-size: 1.1rem;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    position: fixed; bottom: 110px; right: 20px; z-index: 10;
+    width: 42px; height: 42px; border-radius: 50%;
+    border: 1px solid rgba(155,109,189,0.3);
+    background: rgba(13,13,20,0.85); backdrop-filter: blur(12px);
+    color: var(--text-dim); font-size: 1rem; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
     transition: all 0.3s;
   }
-  .music-btn:hover { border-color: var(--gold); color: var(--gold); }
-  .music-btn.playing { color: var(--gold); border-color: rgba(201,166,90,0.5); }
+  .music-btn.playing { color: var(--pulse); border-color: rgba(212,176,240,0.45); }
 
-  @keyframes fadeIn { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
-  @keyframes slideIn { from{opacity:0;transform:translateX(8px)} to{opacity:1;transform:translateX(0)} }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
 
   ::-webkit-scrollbar { width: 3px; }
   ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background: rgba(201,166,90,0.2); border-radius: 2px; }
-
-  @media (max-width: 700px) {
-    .layout { grid-template-columns: 1fr; grid-template-rows: auto 1fr auto auto; }
-    .header { padding: 20px; }
-    .compose-area { padding: 24px 20px 0; border-right: none; }
-    .compose-footer { padding: 16px 20px 20px; border-right: none; }
-    .history-panel { grid-column: 1; max-height: 200px; padding: 20px; border-top: 1px solid var(--border); }
-  }
+  ::-webkit-scrollbar-thumb { background: rgba(155,109,189,0.25); border-radius: 2px; }
 </style>
 </head>
 <body>
 
-<div class="layout">
-  <!-- Header -->
-  <header class="header">
-    <div class="header-left">
-      <div class="eyebrow">remetente</div>
-      <div class="title">Console do Coração</div>
-    </div>
-    <div class="header-status">
-      <div class="status-dot"></div>
-      <span>ao vivo</span>
-    </div>
-  </header>
+<div class="stars" id="stars"></div>
+<div class="orb orb1"></div>
+<div class="orb orb2"></div>
 
-  <!-- Compose -->
-  <div class="compose-area">
-    <div class="compose-label">escreva o que sente</div>
-    <div class="textarea-wrapper">
-      <textarea id="msgInput" placeholder="Cada palavra que você escrever aparecerá na tela dela ao vivo..." maxlength="2000"></textarea>
-    </div>
-    <div class="char-count"><span id="charCount">0</span> / 2000</div>
+<div class="app">
+  <div class="header">
+    <div class="header-eyebrow">remetente</div>
+    <div class="header-title">Console do Coração</div>
+    <div class="status"><div class="status-dot"></div><span>ao vivo</span></div>
   </div>
 
-  <!-- Compose footer -->
-  <div class="compose-footer">
-    <button class="send-btn" id="sendBtn" onclick="sendMessage()">
-      <span>✦</span>
-      <span>Enviar mensagem</span>
-    </button>
-    <div class="shortcut-hint"><kbd>Ctrl</kbd> + <kbd>Enter</kbd></div>
-  </div>
-
-  <!-- History -->
-  <div class="history-panel">
-    <div class="history-header">
+  <div class="history">
+    <div class="history-label">
       <span>enviadas</span>
-      <button class="clear-btn" onclick="confirmClear()">limpar</button>
+      <button class="clear-btn" onclick="confirmClear()">limpar tudo</button>
     </div>
-    <div class="history-list" id="historyList">
+    <div class="history-items" id="historyItems">
       <div class="history-empty" id="historyEmpty">nenhuma mensagem ainda...</div>
+    </div>
+  </div>
+
+  <div class="compose">
+    <div class="compose-label">escreva o que sente</div>
+    <textarea id="msgInput" placeholder="Cada palavra aparecerá na tela dela ao vivo..." maxlength="2000"></textarea>
+    <div class="compose-row">
+      <div class="char-count"><span id="charCount">0</span>/2000</div>
+      <button class="send-btn" id="sendBtn" onclick="sendMessage()">
+        <span>✦</span><span>Enviar</span>
+      </button>
     </div>
   </div>
 </div>
 
-<!-- Notification -->
 <div class="notif" id="notif"></div>
-
-<!-- Music -->
-<button class="music-btn" id="musicBtn" onclick="toggleMusic()" title="Música">
-  <span id="musicIcon">♪</span>
-</button>
-
+<button class="music-btn" id="musicBtn" onclick="toggleMusic()"><span id="musicIcon">♪</span></button>
 <audio id="bgMusic" loop>
-  <!-- Replace with your own music for the sender -->
   <source src="https://cdn.pixabay.com/download/audio/2021/11/25/audio_5ff9f9c1d3.mp3" type="audio/mpeg">
 </audio>
 
-<!-- Firebase SDK -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import { getDatabase, ref, push, set, remove, onChildAdded, onChildRemoved, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+  import { getDatabase, ref, push, set, remove, onChildAdded, onChildRemoved } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
-  // ============================================================
-  //  🔧 CONFIGURE YOUR FIREBASE PROJECT HERE (same config as Console 1)
-  // ============================================================
   const firebaseConfig = {
     apiKey: "AIzaSyAPJumCm22O2efBsou0_HjMb2F8mk9ndUE",
     authDomain: "soul-23fc2.firebaseapp.com",
@@ -475,145 +266,105 @@
     messagingSenderId: "385202397060",
     appId: "1:385202397060:web:8faf55d3b6fdf74e23c7d1"
   };
-  // ============================================================
 
   const app = initializeApp(firebaseConfig);
   const db  = getDatabase(app);
-
   const msgsRef   = ref(db, "messages");
   const typingRef = ref(db, "typing");
-  const historyList = document.getElementById("historyList");
-  const historyEmpty = document.getElementById("historyEmpty");
 
-  let typingTimeout = null;
-  let localIds = new Set();
-
-  // --- Typing indicator ---
+  const historyItems = document.getElementById("historyItems");
   const input = document.getElementById("msgInput");
+  let typingTimeout = null;
+  const renderedIds = new Set();
+
   input.addEventListener("input", () => {
     set(typingRef, { active: true });
     clearTimeout(typingTimeout);
     typingTimeout = setTimeout(() => set(typingRef, { active: false }), 1800);
+    document.getElementById("charCount").textContent = input.value.length;
   });
 
-  // --- Send ---
   window.sendMessage = async function() {
     const text = input.value.trim();
     if (!text) return;
-
     const btn = document.getElementById("sendBtn");
     btn.classList.add("sending");
-
     try {
-      const newRef = await push(msgsRef, {
-        text,
-        timestamp: Date.now()
-      });
+      await push(msgsRef, { text, timestamp: Date.now() });
       set(typingRef, { active: false });
       clearTimeout(typingTimeout);
       input.value = "";
       document.getElementById("charCount").textContent = "0";
-      showNotif("✦  mensagem enviada");
-      localIds.add(newRef.key);
-    } catch (e) {
-      showNotif("erro ao enviar — verifique o Firebase");
-      console.error(e);
-    }
+      showNotif("✦ mensagem enviada");
+    } catch(e) { showNotif("erro — verifique conexão"); }
     btn.classList.remove("sending");
   };
 
-  // Ctrl+Enter shortcut
   input.addEventListener("keydown", e => {
     if ((e.ctrlKey || e.metaKey) && e.key === "Enter") { e.preventDefault(); sendMessage(); }
   });
 
-  // Char count
-  input.addEventListener("input", () => {
-    document.getElementById("charCount").textContent = input.value.length;
-  });
-
-  // --- Listen to own sent messages for history ---
-  const renderedIds = new Set();
   onChildAdded(msgsRef, snap => {
-    const id  = snap.key;
-    const msg = snap.val();
+    const id = snap.key; const msg = snap.val();
     if (renderedIds.has(id)) return;
     renderedIds.add(id);
-
-    if (historyEmpty.parentNode) historyEmpty.remove();
-
-    const item = document.createElement("div");
-    item.className = "history-item";
-    item.dataset.id = id;
-
+    const emp = document.getElementById("historyEmpty");
+    if (emp) emp.remove();
     const time = new Date(msg.timestamp);
-    const timeStr = time.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
-
-    item.innerHTML = `
-      <div class="history-time">
-        <span>${timeStr}</span>
-        <button class="delete-msg-btn" data-id="${id}" title="Apagar">✕</button>
-      </div>
-      <div class="history-text">${escapeHtml(msg.text)}</div>
-    `;
-
-    item.querySelector(".delete-msg-btn").addEventListener("click", () => {
-      remove(ref(db, "messages/" + id));
-    });
-
-    historyList.appendChild(item);
-    historyList.scrollTop = historyList.scrollHeight;
+    const timeStr = time.toLocaleTimeString("pt-BR", { hour:"2-digit", minute:"2-digit" });
+    const item = document.createElement("div");
+    item.className = "history-item"; item.dataset.id = id;
+    item.innerHTML = `<div class="history-time"><span>${timeStr}</span><button class="delete-btn" data-id="${id}">✕</button></div><div class="history-text">${escapeHtml(msg.text)}</div>`;
+    item.querySelector(".delete-btn").addEventListener("click", () => remove(ref(db, "messages/" + id)));
+    historyItems.appendChild(item);
+    historyItems.scrollTop = historyItems.scrollHeight;
   });
 
   onChildRemoved(msgsRef, snap => {
-    const el = historyList.querySelector(`[data-id="${snap.key}"]`);
+    const el = historyItems.querySelector(`[data-id="${snap.key}"]`);
     if (el) el.remove();
-    if (historyList.children.length === 0) {
+    if (historyItems.children.length === 0) {
       const emp = document.createElement("div");
-      emp.className = "history-empty";
-      emp.id = "historyEmpty";
+      emp.className = "history-empty"; emp.id = "historyEmpty";
       emp.textContent = "nenhuma mensagem ainda...";
-      historyList.appendChild(emp);
+      historyItems.appendChild(emp);
     }
   });
 
-  // Clear all
   window.confirmClear = function() {
     if (confirm("Apagar todas as mensagens?\n\nElas desaparecerão do Console da Alma também.")) {
-      remove(msgsRef);
-      set(typingRef, { active: false });
+      remove(msgsRef); set(typingRef, { active: false });
     }
   };
 
-  function escapeHtml(t) {
-    return t.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
-  }
-
-  window.__firebaseReady = true;
+  function escapeHtml(t) { return t.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
 </script>
 
 <script>
-  // ---- Notification ----
+  const starsEl = document.getElementById("stars");
+  for (let i = 0; i < 60; i++) {
+    const s = document.createElement("div"); s.className = "star";
+    const size = Math.random() * 2 + 0.5;
+    s.style.cssText = `width:${size}px;height:${size}px;top:${Math.random()*100}%;left:${Math.random()*100}%;--d:${2+Math.random()*5}s;--o1:${0.05+Math.random()*0.15};--o2:${0.2+Math.random()*0.4};animation-delay:${Math.random()*6}s;`;
+    starsEl.appendChild(s);
+  }
+
   function showNotif(msg) {
     const el = document.getElementById("notif");
-    el.textContent = msg;
-    el.classList.add("show");
-    setTimeout(() => el.classList.remove("show"), 2200);
+    el.textContent = msg; el.classList.add("show");
+    setTimeout(() => el.classList.remove("show"), 2000);
   }
   window.showNotif = showNotif;
 
-  // ---- Music ----
-  const music  = document.getElementById("bgMusic");
-  const btn    = document.getElementById("musicBtn");
-  const icon   = document.getElementById("musicIcon");
-  let playing  = false;
+  const music = document.getElementById("bgMusic");
+  const btn   = document.getElementById("musicBtn");
+  const icon  = document.getElementById("musicIcon");
+  let playing = false;
 
   document.addEventListener("click", function tryPlay() {
     if (!playing) { music.play().then(() => { playing = true; btn.classList.add("playing"); icon.textContent = "♫"; }); }
     document.removeEventListener("click", tryPlay);
   }, { once: true });
-
-  music.play().then(() => { playing = true; btn.classList.add("playing"); icon.textContent = "♫"; }).catch(()=>{});
 
   function toggleMusic() {
     if (playing) { music.pause(); playing = false; btn.classList.remove("playing"); icon.textContent = "♪"; }
