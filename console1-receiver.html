@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Console da Alma</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Raleway:wght@200;300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0d14;
+    --surface: #12121e;
+    --glow: #c8a0e4;
+    --text: #e8dff5;
+    --text-dim: #7a6f90;
+    --accent: #9b6dbd;
+    --pulse: #d4b0f0;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Cormorant Garamond', serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+    cursor: default;
+  }
+
+  /* Starfield background */
+  .stars {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .star {
+    position: absolute;
+    border-radius: 50%;
+    background: white;
+    animation: twinkle var(--d, 3s) infinite ease-in-out alternate;
+  }
+  @keyframes twinkle {
+    from { opacity: var(--o1, 0.1); transform: scale(1); }
+    to   { opacity: var(--o2, 0.6); transform: scale(1.3); }
+  }
+
+  /* Ambient glow orbs */
+  .orb {
+    position: fixed;
+    border-radius: 50%;
+    filter: blur(80px);
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.18;
+  }
+  .orb1 { width: 500px; height: 500px; background: #6a3fa0; top: -100px; left: -100px; animation: drift1 18s infinite ease-in-out alternate; }
+  .orb2 { width: 400px; height: 400px; background: #3f3560; bottom: -80px; right: -80px; animation: drift2 22s infinite ease-in-out alternate; }
+  .orb3 { width: 300px; height: 300px; background: #7050a0; top: 40%; left: 40%; animation: drift1 15s infinite ease-in-out alternate-reverse; }
+
+  @keyframes drift1 { from { transform: translate(0,0) scale(1); } to { transform: translate(40px, 30px) scale(1.15); } }
+  @keyframes drift2 { from { transform: translate(0,0) scale(1); } to { transform: translate(-30px, -20px) scale(1.1); } }
+
+  /* Layout */
+  .wrapper {
+    position: relative;
+    z-index: 1;
+    max-width: 680px;
+    margin: 0 auto;
+    padding: 60px 32px 120px;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Header */
+  .header {
+    text-align: center;
+    margin-bottom: 56px;
+    opacity: 0;
+    animation: fadeUp 1.2s 0.3s forwards;
+  }
+  .header-eyebrow {
+    font-family: 'Raleway', sans-serif;
+    font-weight: 200;
+    font-size: 0.7rem;
+    letter-spacing: 0.35em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 12px;
+  }
+  .header-title {
+    font-size: clamp(2rem, 5vw, 3.2rem);
+    font-weight: 300;
+    font-style: italic;
+    color: var(--pulse);
+    letter-spacing: 0.02em;
+    text-shadow: 0 0 40px rgba(200,160,228,0.4);
+  }
+  .divider {
+    margin: 20px auto 0;
+    width: 60px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  }
+
+  /* Messages area */
+  .messages-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .message-entry {
+    opacity: 0;
+    transform: translateY(20px);
+    animation: fadeUp 0.8s forwards;
+    padding: 28px 0;
+    border-bottom: 1px solid rgba(155,109,189,0.1);
+    position: relative;
+  }
+  .message-entry:last-child { border-bottom: none; }
+
+  .message-meta {
+    font-family: 'Raleway', sans-serif;
+    font-weight: 200;
+    font-size: 0.62rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 12px;
+  }
+
+  .message-text {
+    font-size: clamp(1.05rem, 2.5vw, 1.35rem);
+    line-height: 1.85;
+    font-weight: 300;
+    color: var(--text);
+    white-space: pre-wrap;
+  }
+
+  .message-cursor {
+    display: inline-block;
+    width: 2px;
+    height: 1.1em;
+    background: var(--pulse);
+    margin-left: 3px;
+    vertical-align: middle;
+    animation: blink 0.9s infinite;
+  }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+  /* Typing indicator */
+  .typing-indicator {
+    display: none;
+    align-items: center;
+    gap: 10px;
+    padding: 24px 0;
+    opacity: 0;
+    transition: opacity 0.4s;
+  }
+  .typing-indicator.visible { display: flex; opacity: 1; }
+  .typing-label {
+    font-family: 'Raleway', sans-serif;
+    font-weight: 200;
+    font-size: 0.68rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-style: italic;
+  }
+  .typing-dots { display: flex; gap: 5px; }
+  .typing-dot {
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: var(--accent);
+    animation: dotBounce 1.2s infinite ease-in-out;
+  }
+  .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+  .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes dotBounce {
+    0%,80%,100% { transform: scale(0.8); opacity: 0.5; }
+    40% { transform: scale(1.2); opacity: 1; }
+  }
+
+  /* Empty state */
+  .empty-state {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 60px 0;
+    opacity: 0;
+    animation: fadeUp 1.4s 0.8s forwards;
+  }
+  .empty-icon { font-size: 2.5rem; margin-bottom: 20px; opacity: 0.3; }
+  .empty-text {
+    font-size: 1.1rem;
+    font-style: italic;
+    font-weight: 300;
+    color: var(--text-dim);
+    line-height: 1.7;
+    max-width: 320px;
+  }
+
+  /* Music button */
+  .music-btn {
+    position: fixed;
+    bottom: 28px;
+    right: 28px;
+    z-index: 10;
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    border: 1px solid rgba(155,109,189,0.35);
+    background: rgba(18,18,30,0.85);
+    backdrop-filter: blur(12px);
+    color: var(--text-dim);
+    font-size: 1.1rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s;
+    box-shadow: 0 0 20px rgba(155,109,189,0.1);
+  }
+  .music-btn:hover {
+    border-color: var(--accent);
+    color: var(--pulse);
+    box-shadow: 0 0 30px rgba(155,109,189,0.25);
+  }
+  .music-btn.playing { color: var(--pulse); border-color: rgba(212,176,240,0.5); }
+
+  /* Vinyl animation when playing */
+  .music-btn.playing .music-icon { animation: spin 4s linear infinite; display: inline-block; }
+  @keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(155,109,189,0.3); border-radius: 2px; }
+</style>
+</head>
+<body>
+
+<!-- Stars -->
+<div class="stars" id="stars"></div>
+
+<!-- Ambient orbs -->
+<div class="orb orb1"></div>
+<div class="orb orb2"></div>
+<div class="orb orb3"></div>
+
+<div class="wrapper">
+  <div class="header">
+    <div class="header-eyebrow">mensagens ao vivo</div>
+    <div class="header-title">Console da Alma</div>
+    <div class="divider"></div>
+  </div>
+
+  <div class="messages-area" id="messagesArea">
+    <div class="empty-state" id="emptyState">
+      <div class="empty-icon">✦</div>
+      <div class="empty-text">aguardando as primeiras palavras chegarem...</div>
+    </div>
+  </div>
+
+  <div class="typing-indicator" id="typingIndicator">
+    <div class="typing-dots">
+      <div class="typing-dot"></div>
+      <div class="typing-dot"></div>
+      <div class="typing-dot"></div>
+    </div>
+    <div class="typing-label">algo está sendo escrito</div>
+  </div>
+</div>
+
+<!-- Music control -->
+<button class="music-btn" id="musicBtn" onclick="toggleMusic()" title="Música">
+  <span class="music-icon" id="musicIcon">♪</span>
+</button>
+
+<!-- Audio element — swap src for your MP3 or a hosted URL -->
+<audio id="bgMusic" loop>
+  <!-- Replace with your music URL or file path -->
+  <!-- Example: <source src="music/receiver.mp3" type="audio/mpeg"> -->
+  <!-- Using a free ambient piece as placeholder — replace as needed -->
+  <source src="https://cdn.pixabay.com/download/audio/2022/03/10/audio_c8c8a73467.mp3" type="audio/mpeg">
+</audio>
+
+<!-- Firebase SDK -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getDatabase, ref, onValue, onChildAdded, query, orderByChild } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+  // ============================================================
+  //  🔧 CONFIGURE YOUR FIREBASE PROJECT HERE
+  // ============================================================
+  const firebaseConfig = {
+    apiKey: "AIzaSyAPJumCm22O2efBsou0_HjMb2F8mk9ndUE",
+    authDomain: "soul-23fc2.firebaseapp.com",
+    databaseURL: "https://soul-23fc2-default-rtdb.firebaseio.com",
+    projectId: "soul-23fc2",
+    storageBucket: "soul-23fc2.firebasestorage.app",
+    messagingSenderId: "385202397060",
+    appId: "1:385202397060:web:8faf55d3b6fdf74e23c7d1"
+  };
+  // ============================================================
+
+  const app = initializeApp(firebaseConfig);
+  const db  = getDatabase(app);
+
+  const messagesArea   = document.getElementById("messagesArea");
+  const emptyState     = document.getElementById("emptyState");
+  const typingIndicator = document.getElementById("typingIndicator");
+
+  let messageCount = 0;
+  let isFirstLoad  = true;
+  const renderedIds = new Set();
+
+  // --- Typing indicator ---
+  const typingRef = ref(db, "typing");
+  onValue(typingRef, snap => {
+    const val = snap.val();
+    if (val && val.active) {
+      typingIndicator.classList.add("visible");
+    } else {
+      typingIndicator.classList.remove("visible");
+    }
+  });
+
+  // --- Messages ---
+  const msgsRef = query(ref(db, "messages"), orderByChild("timestamp"));
+
+  onChildAdded(msgsRef, snap => {
+    const id  = snap.key;
+    const msg = snap.val();
+    if (renderedIds.has(id)) return;
+    renderedIds.add(id);
+
+    if (isFirstLoad) {
+      renderMessage(msg, id, false);
+    } else {
+      renderMessage(msg, id, true);
+    }
+  });
+
+  // Mark first load complete after slight delay
+  setTimeout(() => { isFirstLoad = false; }, 1500);
+
+  function renderMessage(msg, id, animate) {
+    // Hide empty state
+    if (emptyState.parentNode) {
+      emptyState.style.opacity = "0";
+      emptyState.style.transition = "opacity 0.5s";
+      setTimeout(() => emptyState.remove(), 500);
+    }
+
+    messageCount++;
+    const time = new Date(msg.timestamp);
+    const timeStr = time.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+
+    const entry = document.createElement("div");
+    entry.className = "message-entry";
+    entry.dataset.id = id;
+    if (!animate) entry.style.animationDelay = `${(messageCount - 1) * 0.12}s`;
+
+    const meta = document.createElement("div");
+    meta.className = "message-meta";
+    meta.textContent = timeStr;
+
+    const textEl = document.createElement("div");
+    textEl.className = "message-text";
+
+    entry.appendChild(meta);
+    entry.appendChild(textEl);
+
+    // Insert before typing indicator but if typing indicator not in messages area, just append
+    messagesArea.appendChild(entry);
+
+    if (animate) {
+      typewriterEffect(textEl, msg.text);
+    } else {
+      textEl.textContent = msg.text;
+    }
+
+    // Scroll to bottom
+    setTimeout(() => {
+      entry.scrollIntoView({ behavior: "smooth", block: "end" });
+    }, 100);
+  }
+
+  function typewriterEffect(el, text) {
+    const cursor = document.createElement("span");
+    cursor.className = "message-cursor";
+    el.appendChild(cursor);
+
+    let i = 0;
+    const speed = Math.max(18, Math.min(40, 2000 / text.length));
+
+    const interval = setInterval(() => {
+      if (i < text.length) {
+        el.insertBefore(document.createTextNode(text[i]), cursor);
+        i++;
+        el.closest(".message-entry").scrollIntoView({ behavior: "smooth", block: "end" });
+      } else {
+        clearInterval(interval);
+        cursor.remove();
+      }
+    }, speed);
+  }
+
+  window.__firebaseReady = true;
+</script>
+
+<script>
+  // ---- Stars ----
+  const starsEl = document.getElementById("stars");
+  for (let i = 0; i < 90; i++) {
+    const s = document.createElement("div");
+    s.className = "star";
+    const size = Math.random() * 2 + 0.5;
+    s.style.cssText = `
+      width:${size}px; height:${size}px;
+      top:${Math.random()*100}%;
+      left:${Math.random()*100}%;
+      --d:${2+Math.random()*5}s;
+      --o1:${0.05+Math.random()*0.2};
+      --o2:${0.3+Math.random()*0.5};
+      animation-delay:${Math.random()*6}s;
+    `;
+    starsEl.appendChild(s);
+  }
+
+  // ---- Music ----
+  const music   = document.getElementById("bgMusic");
+  const btn     = document.getElementById("musicBtn");
+  const icon    = document.getElementById("musicIcon");
+  let playing   = false;
+
+  // Auto-play on first interaction
+  document.addEventListener("click", function tryPlay() {
+    if (!playing) { music.play().then(() => { playing = true; btn.classList.add("playing"); }); }
+    document.removeEventListener("click", tryPlay);
+  }, { once: true });
+
+  // Also try immediately
+  music.play().then(() => { playing = true; btn.classList.add("playing"); }).catch(() => {});
+
+  function toggleMusic() {
+    if (playing) {
+      music.pause();
+      playing = false;
+      btn.classList.remove("playing");
+      icon.textContent = "♪";
+    } else {
+      music.play();
+      playing = true;
+      btn.classList.add("playing");
+      icon.textContent = "♫";
+    }
+  }
+</script>
+</body>
+</html>
